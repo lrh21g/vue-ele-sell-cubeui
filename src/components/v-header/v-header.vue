@@ -1,5 +1,5 @@
 <template>
-  <div class="header">
+  <div class="header" @click="showDetail">
     <div class="content-wrapper">
       <div class="avatar">
         <img width="64" height="64" :src="seller.avatar">
@@ -46,6 +46,16 @@ export default {
       default () {
         return {}
       }
+    }
+  },
+  methods: {
+    showDetail () {
+      this.headerDetailComp = this.headerDetailComp || this.$createHeaderDetail({
+        $props: {
+          seller: 'seller'
+        }
+      })
+      this.headerDetailComp.show()
     }
   },
   components: {
