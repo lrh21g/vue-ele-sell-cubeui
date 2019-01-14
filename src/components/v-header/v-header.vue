@@ -51,11 +51,13 @@ export default {
   methods: {
     showDetail () {
       this.headerDetailComp = this.headerDetailComp || this.$createHeaderDetail({
+        // 通过 this.$createHeaderDetail 实例化 HeaderDetail 组件
         $props: {
+          // 传递给组件的 Props
           seller: 'seller'
         }
       })
-      this.headerDetailComp.show()
+      this.headerDetailComp.show() // 调用组件内 show 方法
     }
   },
   components: {
