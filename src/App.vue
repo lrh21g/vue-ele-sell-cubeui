@@ -9,9 +9,25 @@
 <script>
 // import HelloWorld from './components/HelloWorld.vue'
 import VHeader from 'components/v-header/v-header'
+import { getSeller } from 'api'
 
 export default {
   name: 'app',
+  data () {
+    return {
+      seller: {}
+    }
+  },
+  created () {
+    this._getSeller()
+  },
+  methods: {
+    _getSeller () {
+      getSeller().then((seller) => {
+        this.seller = seller
+      })
+    }
+  },
   components: {
     // HelloWorld
     VHeader
