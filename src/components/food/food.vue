@@ -73,7 +73,7 @@
 </template>
 
 <script type="text/ecmascript-6">
-  import moment from 'moment'
+  import moment from 'moment' // JavaScript 日期处理类库
   import CartControl from 'components/cart-control/cart-control'
   import RatingSelect from 'components/rating-select/rating-select'
   import Split from 'components/split/split'
@@ -94,7 +94,7 @@
     },
     data() {
       return {
-        desc: {
+        desc: { // 评价类型
           all: '全部',
           positive: '推荐',
           negative: '吐槽'
@@ -102,7 +102,7 @@
       }
     },
     computed: {
-      ratings() {
+      ratings() { // 全部评价
         return this.food.ratings
       }
     },

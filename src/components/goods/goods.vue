@@ -78,7 +78,6 @@
   import { getGoods } from 'api'
   import CartControl from 'components/cart-control/cart-control' // 商品数量控制组件（对商品进行加减）
   import ShopCart from 'components/shop-cart/shop-cart' // 底部购物栏
-  // import Food from 'components/food/food'
   import SupportIco from 'components/support-ico/support-ico'
   import Bubble from 'components/bubble/bubble' // 角标组件
 
@@ -140,6 +139,8 @@
       }
     },
     methods: {
+      // 如果存在fetched则不进行数据的获取，防止切换tabItem再返回goods（商品tabItem）时，数据重新获取
+      // 在 组件tab 中被调用
       fetch() {
         if (!this.fetched) {
           this.fetched = true
@@ -160,13 +161,14 @@
         this.$refs.shopCart.drop(target) // 触发 shop-cart 组件中 drop 方法
       },
       _showFood() {
+        // 通过 createAPI 将 food组件 创建并挂载到外部
         this.foodComp = this.foodComp || this.$createFood({
           $props: {
             food: 'selectedFood'
           },
           $events: {
             add: (target) => {
-              this.shopCartStickyComp.drop(target)
+              this.shopCartStickyComp.drop(target) // 驱动小球动画，可参考 shop-cart 组件内容
             },
             leave: () => {
               this._hideShopCartSticky()
@@ -176,6 +178,7 @@
         this.foodComp.show()
       },
       _showShopCartSticky() {
+        // 通过 createAPI 将 shop-cart-sticky组件 创建并挂载在外部，可参考 shop-cart 组件内容
         this.shopCartStickyComp = this.shopCartStickyComp || this.$createShopCartSticky({
           $props: {
             selectFoods: 'selectFoods',
@@ -195,7 +198,6 @@
       SupportIco,
       CartControl,
       ShopCart
-      // Food
     }
   }
 </script>
