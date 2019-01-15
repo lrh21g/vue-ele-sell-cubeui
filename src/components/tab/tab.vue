@@ -74,9 +74,20 @@
         }
       }
     },
+    mounted () {
+      this.onChange(this.index)
+    },
     methods: {
       onChange (current) {
         this.index = current
+        // 获取对应 tabItem 下的组件的数据
+        // 如果在 Goods（商品）组件下，获取 Ratings（评论）、Seller（商家）组件下的数据，肯定不是最优的。
+        // 获取数据最佳的时机，是当切换到当前 tabItem 的时候进行数据的获取。
+        // 因为 onChange 为手动触发的，所有在首次进入页面的时候，需要在 mounted 中进行触发，获取对应数据。
+        const instance = this.$refs.component[current] // 通过 $refs 获取对组件
+        if (instance && instance.fetch) {
+          instance.fetch() // 当对应组件以及组件中存在 fetch 方法的时候，使用组件中 fetch() 方法进行获取数据
+        }
       },
       onScroll (pos) {
         // pos 为滚动位置的坐标值
