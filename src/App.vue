@@ -60,6 +60,8 @@
           id: this.seller.id
         }).then((seller) => {
           this.seller = Object.assign({}, this.seller, seller)
+          // Object.assign - 对象合并是指：将源对象里面的属性添加到目标对象中去，若两者的属性名有冲突，后面的将会覆盖前面的
+          // 空对象( {} )叫目标对象，后面的obj、obj1是源对象。
         })
       }
     },
