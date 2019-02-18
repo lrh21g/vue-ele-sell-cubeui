@@ -16,7 +16,7 @@
 
 ## 3. 项目备注
 
-+ 项目组件简介、小球动画实现。可参考 [vue-elesell readme](https://gitee.com/VueToLRH/vue-sell/blob/master/readme)
++ 项目组件简介、小球动画实现。可参考 [vue-elesell readme](https://gitee.com/VueToLRH/vue-sell/tree/master/readme)
 
 ## 4. 项目展示
 
