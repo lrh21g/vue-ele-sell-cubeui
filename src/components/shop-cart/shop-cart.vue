@@ -81,7 +81,7 @@
     data() {
       return {
         balls: createBalls(),
-        listFold: this.fold // 底部购物栏显示已购买列表显示标识
+        listFold: this.fold // 购物栏商品列表是否已隐藏标识
       }
     },
     created() {
@@ -127,18 +127,18 @@
     methods: {
       // 控制底部购物栏展示已购买列表的显示隐藏
       toggleList() {
-        // 如果 底部购物栏展示已购买列表 已显示，再次点击则隐藏
+        // 如果 购物栏商品列表 已隐藏，再次点击则显示
         if (this.listFold) {
           if (!this.totalCount) {
             // 如果购买数量为 0，则 return，否则进行显示
             return
           }
           this.listFold = false
-          this._showShopCartList()
-          this._showShopCartSticky()
+          this._showShopCartList() // 显示 购物栏商品列表
+          this._showShopCartSticky() // 显示 购物栏副本（shop-cart-sticky），主要用解决 shop-cart-list 遮住 底部购物栏（shop-cart组件） 的问题
         } else {
           this.listFold = true
-          this._hideShopCartList()
+          this._hideShopCartList() // 隐藏 购物栏商品列表
         }
       },
       pay(e) {
@@ -210,44 +210,59 @@
           },
           $events: {
             leave: () => {
+              // shop-cart-list组件中，购物栏商品列表隐藏动画结束之后，通过 $emit 触发 leave 事件
+              // _hideShopCartSticky() 用于隐藏 shop-cart-sticky
+              // shop-cart-sticky 为 shop-cart 的副本，主要为了解决购物栏商品列表显示时，遮住了部分购物栏购物车icon
+              // 当用户进行 tab(商品|评论|商家) 切换的时候，因为 shop-cart-sticky 使用 createAPI 挂载到了全局下。所以切换的时候 shop-cart-sticky 并不会消失
+              // 为了解决这个问题，可以在 shop-cart-list 隐藏动画结束的时候，将 shop-cart-sticky 进行隐藏
               this._hideShopCartSticky()
             },
             hide: () => {
-              // shop-cart-list组件的hide事件
-              // 避免点击蒙层关闭 底部购物栏显示已购买列表 未将 listFold 标识置换为 true
-              // 当再次点击 底部购物栏 的时候，需要点击两次才能显示 已购买列表
+              // shop-cart-list组件中，点击购物栏遮罩蒙版和清空按钮的时候，都会通过 $emit 触发 hide 事件
+              // shop-cart-list组件中 hide 事件，主要用于隐藏 购物栏商品列表
+              // 同时，将 listFold（购物栏商品列表是否已隐藏标识） 设置为 true，表示购物栏商品列表已隐藏
+              // 避免当再次点击 底部购物栏 的时候，需要点击两次才能显示 已购买列表
               this.listFold = true
             },
             add: (el) => {
+              // shop-cart-list组件中，点击增加商品数量按钮的时候，都会通过 $emit 触发 add 事件
+              // 传递参数为 增加商品数量按钮DOM
+              // shop-cart-sticky组件 中调用了 shop-cart组件
+              // 通过 shop-cart-sticky组件中的 drop方法，触发 shop-cart组件中 drop方法（通过 this.$ref 实现），驱动小球动画
               this.shopCartStickyComp.drop(el)
-              // 此时 shop-cart-sticky组件被创建挂载到外部，
-              // 所以需要通过 shop-cart-sticky组件，才能触发 shop-cart组件中 drop方法 驱动小球动画
-              // 在shop-cart-sticky组件中，定义drop方法，方法中通过 $ref 获取 shop-cart组件 的ref，从而触发 shop-cart组件中 drop方法
             }
           }
         })
-        this.shopCartListComp.show()
+        console.log('shopCartListComp')
+        this.shopCartListComp.show() // 调用 shop-cart-list组件中，show方法，显示 购物栏商品列表
       },
       _showShopCartSticky() {
-        // shop-cart-sticky 为 shop-cart 的副本，主要用解决 shop-cart-list 遮住 底部购物栏（shop-cart组件） 的问题
-        // >>> 问题：shop-cart-list组件 挂载在外部，而 底部购物栏 在 goods组件 内部。从而会遮住 底部购物栏（shop-cart组件）
-        // >>> 解决办法：将 shop-cart 的副本 shop-cart-sticky 通过 createAPI 挂载到外部即可
-        // >>>          shop-cart-sticky 其与 shop-cart组件的数据需要相同，所以此处通过 $props 进行相关数据的传递
-        // 注意：shop-cart-sticky 组件中，直接引入 shop-cart 组件完成复制的。
-        // >>> 问题：当 shop-cart 通过 toggleList() 方法展示 shop-cart-list组件 的时候，同时将 shop-cart-sticky组件 挂载到了外部
-        // >>>      当再次点击 toggleList() 方法，对 shop-cart-list组件 进行隐藏的时候：
-        // >>>      > 对于 shop-cart 而言，是存在 是【存在】通过 createAPI 将 shop-cart-list组件 挂载到外部的
-        // >>>      > 对于 shop-cart-sticky 而言，是【不存在】通过 createAPI 将 shop-cart-list组件 挂载到外部的
-        // >>> 解决办法: 当对 shop-cart-list组件 进行隐藏的时候,会触发 _hideShopCartList() 方法进行隐藏时,需要判断是否来自 shop-cart-sticky
-        // >>>          通过 createAPI 将 shop-cart-sticky组件 挂载到外部的时候,通过 $props 将传递 this.shopCartListComp（即，通过 createAPI 挂载到外部的shop-cart-list）
-        // >>>          在 _hideShopCartList()方法 中,通过 判断 sticky 是否来自 shop-cart-sticky组件 进行判断（在 shop-cart-sticky 传递sticky时，可将其始终设置为true）：
-        // >>>          > 如果是（true），则 通过 this.$parent（即：shop-cart-sticky组件），
-        // >>>            调用通过 createAPI $props 传递的 list（即：this.shopCartListComp） 的 hide() 方法，对 shop-cart-list 进行隐藏
-        // >>>          > 如果不是（false），则直接调用 this.shopCartListComp 的 hide() 方法
-        // >>> 问题：shop-cart-sticky 挂载在外部，则一直会存在，当从商品tabItem切换到其他tabItem的时候，还是会存在
-        // >>> 解决办法：当 shop-cart-lsit 隐藏动画结束之后，调用 _hideShopCartSticky() 方法对 shop-cart-sticky组件 进行隐藏
-        // >>>          在 shop-cart-lsit组件，动画结束钩子定义的函数 afterLeave() 方法中，使用 $emit 触发 leave 事件
-        // >>>          shop-cart-lsit组件 在 shop-cart组件中，通过 createAPI 组件进行创建和挂载，所以在创建和挂载的地方，使用 $events 绑定 leave 事件
+        // >>> shop-cart-sticky 为 shop-cart 的副本，主要用解决 shop-cart-list 遮住 底部购物栏（shop-cart组件） 的问题
+        // >>> shop-cart-sticky 组件中，是通过引入 shop-cart组件 完成复制的。需要与 shop-cart 保持一致，所以需要通过 $props 进行相关数据的传递
+        // >>> selectFoods - 已选择的商品;  deliveryPrice - 配送费;  minPrice - 最小起送费
+        // >>> ----------------------------------------------------------------------------------------------------------------------
+        // >>> listFood(购物栏商品列表是否已隐藏标识),不能设置固定值（true）。否则会一直重复显示多个 购物栏商品列表
+        // >>> 原因：shop-cart-sticky组件 中通过 引入 shop-cart组件 完成对购物栏的复制的。如果设置为固定值（true），当用户触发 toggleList() 显示购物栏列表时，
+        // >>>      listFood一直为 true，则会一直调用 this._showShopCartList() 与 this._showShopCartSticky() 方法，一直实例化 shopCartListComp 与 shopCartStickyComp
+        // >>> 解决办法：通过 props 中设置 fold（默认值为 true），用来动态设置 listFold。同时，在创建 shopCartStickyComp 的时候传递 food: 'listFood'
+        // >>>          因为 listFold 的值会进行修改，Vue中不允许直接修改 props 中的值，所以需要在 data 中，将 fold 赋值给 listFood
+        // >>> ----------------------------------------------------------------------------------------------------------------------
+        // >>> 当用户触发点击底部购物栏，触发 toggleList() 显示 shop-cart-list 与 shop-cart-sticky。
+        // >>> 当用户再次点击，进行隐藏时，就会触发 _hideShopCartList() 函数，对 shop-cart-list 进行隐藏。其实当用户点击时，触发的是 shop-cart-sticky组件 上的 toggleList()，但是：
+        // >>> > 对于 shop-cart组件 中是存在通过 createAPI 将 shop-cart-list组件 挂载到外部的
+        // >>> > 对于 shop-cart-sticky组件 中是不存在通过 createAPI 将 shop-cart-list组件 挂载到外部的
+        // >>> 所以需要对 shop-cart组件 中的 shopCartListComp 进行操作
+        // >>> 解决办法：可以将 shop-cart-list组件 通过 createAPI 实例化，通过参数 list 传递给 shop-cart-sticky。
+        // >>>          > 如果是 shop-cart-sticky组件，因为 shop-cart-sticky组件 中，通过 shop-cart组件 完成复刻的。
+        // >>>            可以通过 this.$parent.list（this.$parent即 shop-cart-sticky组件; list 为 shop-cart-list组件 通过 createAPI 的实例化 ）调用 shop-cart-list组件中 hide 方法隐藏 购物栏商品列表
+        // >>>          > 如果是 shop-cart 组件，则可以调用 this.shopCartListComp （shop-cart-list组件 通过 createAPI 的实例化）调用 shop-cart-list组件中 hide 方法隐藏 购物栏商品列表
+        // >>>          此时，需要设置 sticky，表明是 shop-cart-sticky组件 还是 shop-cart组件
+        // >>>          因为 shop-cart-sticky组件 中，sticky 永远为 true，所以，在shop-cart-sticky组件 中，可以将传递给 shop-cart 的 sticky 直接传递 true
+        // >>> ----------------------------------------------------------------------------------------------------------------------
+        // >>> 当用户进行 tab(商品|评论|商家) 切换的时候，因为 shop-cart-sticky 使用 createAPI 挂载到了全局下。所以切换的时候 shop-cart-sticky 并不会消失
+        // >>> 解决办法：为了解决这个问题，可以在 shop-cart-list组件 隐藏动画结束的时候，使用 $emit 触发 leave 事件。
+        // >>>          通过 createAPI 实例化的 shop-cart-list组件中，监听到了 leave事件的回调。通过调用 this._hideShopCartSticky()方法 将 shop-cart-sticky 进行隐藏
+        // >>> ----------------------------------------------------------------------------------------------------------------------
         // >>> 问题：当使用 props 传入 fold 为 false 的时候，会执行 this.listFold = true，对于 shop-cart-sticky，则 listFold 一值为 true。
         //           尽管使用 listFold 修改 fold 的 true 和 false，但是在 toggleList()方法 中，判断的是 this.listFold
         //           会导致一直创建 shop-cart-sticky组件，并挂载到外部。
@@ -261,9 +276,12 @@
             list: this.shopCartListComp
           }
         })
-        this.shopCartStickyComp.show()
+        console.log('shopCartStickyComp')
+        this.shopCartStickyComp.show() // 调用 shop-cart-sticky组件中，show方法，显示 购物栏副本
       },
       _hideShopCartList() {
+        console.log('hideShopCartList')
+        console.log('hideShopCartList sticky', this.sticky)
         const list = this.sticky ? this.$parent.list : this.shopCartListComp
         list.hide && list.hide()
       },

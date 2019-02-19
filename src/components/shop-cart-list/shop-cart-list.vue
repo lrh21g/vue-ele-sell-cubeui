@@ -60,7 +60,11 @@
       }
     },
     created() {
+      // $on 监听当前实例上的自定义事件。事件可以由vm.$emit触发。回调函数会接收所有传入事件触发函数的额外参数。
+      // 监听 EVENT_SHOW(即：show)事件，当触发 show事件 的时候，refresh 列表
+      // 即：每一次显示购物栏列表的时候，重新计算 better-scroll，当 DOM 结构发生变化的时候务必要调用确保滚动的效果正常。
       this.$on(EVENT_SHOW, () => {
+        console.log('$on EVENT_SHOW')
         this.$nextTick(() => {
           this.$refs.listContent.refresh()
         })
@@ -75,10 +79,12 @@
       afterLeave() {
         this.$emit(EVENT_LEAVE)
         // 触发 shop-cart组件中 通过 createAPI 创建并挂载 shop-cart-list组件 中的 $events 的 leave 事件
-        // 从而进行隐藏 shop-cart-list组件
+        // 从而进行隐藏 shop-cart-sticky 组件
+        // 当用户进行 tab(商品|评论|商家) 切换的时候，因为 shop-cart-sticky 使用 createAPI 挂载到了全局下。所以切换的时候 shop-cart-sticky 并不会消失
+        // 为了解决这个问题，可以在 shop-cart-list 隐藏动画结束的时候，将 shop-cart-sticky 进行隐藏
       },
       maskClick() {
-        this.hide() // 触发hide事件
+        this.hide() // 触发hide事件（hide方法 存在于 mixins/popup.js 中），用于隐藏购物栏商品列表
       },
       empty() {
         this.dialogComp = this.$createDialog({

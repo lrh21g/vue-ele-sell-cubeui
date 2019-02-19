@@ -17,6 +17,7 @@
 ## 3. 项目备注
 
 + 项目组件简介、小球动画实现。可参考 [vue-elesell readme](https://gitee.com/VueToLRH/vue-sell/tree/master/readme)
++ [create-api 模块的应用](./readme/createApi.md)
 
 ## 4. 项目展示
 
